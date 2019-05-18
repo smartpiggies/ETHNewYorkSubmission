@@ -104,12 +104,12 @@ class Filters extends React.Component {
                 <AvRadio
                   customInput label="Only non-expired"
                   value="Only non-expired"
-                  onClick={() => filters.showExpired()}
+                  onClick={() => filters.showNotExpired()}
                 />
                 <AvRadio
                   customInput label="Only expired"
                   value="Only expired"
-                  onClick={() => filters.showNotExpired()}
+                  onClick={() => filters.showExpired()}
                 />
               </AvRadioGroup>
 

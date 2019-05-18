@@ -150,9 +150,11 @@ class TokenData extends Component {
                         lotSize: item.lotSize,
                         strike: groomStrike(item.strike),
                         expiryBlock: groomBlocks(item.expiryBlock, this.props.currentBlock),
+                        isExpired: parseInt(item.expiryBlock) < parseInt(this.props.currentBlock),
                         isEuro: groomStyle(item.isEuro),
                         isPut: groomDirection(item.isPut),
                         rfp: item.RFP,
+                        isOnAuction: true,
                         auctionFrom: auction[0].from,
                         startBlock: auction[0].startBlock,
                         startPrice: auction[0].startPrice,
@@ -182,9 +184,11 @@ class TokenData extends Component {
                       lotSize: item.lotSize,
                       strike: groomStrike(item.strike),
                       expiryBlock: groomBlocks(item.expiryBlock, this.props.currentBlock),
+                      isExpired: parseInt(item.expiryBlock) < parseInt(this.props.currentBlock),
                       isEuro: groomStyle(item.isEuro),
                       isPut: groomDirection(item.isPut),
-                      rfp: item.RFP
+                      rfp: item.RFP,
+                      isOnAuction: false,
                     }
                   )
                 })

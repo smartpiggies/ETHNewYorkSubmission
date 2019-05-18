@@ -196,7 +196,6 @@ class TokenData extends Component {
                 "Something went wrong"
               ) : (
                 // write tokenMap to redux
-                console.log("query fired"),
                 <SetTable queryData={tokenMap} />
               )
             }}

@@ -4,6 +4,8 @@ import  { bindActionCreators }    from  'redux'
 import ApolloClient, { gql, InMemoryCache } from 'apollo-boost'
 import { ApolloProvider, Query } from 'react-apollo'
 
+import BigNumber from 'bignumber.js/bignumber'
+
 // import components
 import SetTable from "../components/SetTable"
 
@@ -21,6 +23,9 @@ const client = new ApolloClient({
 
 let tokenMap = []
 let tableRender
+
+const blockDays = parseInt(5760)
+const blockHours = parseInt(240) // 4 blocks per minute * 60 minutes per hour
 
 const PIGGY_QUERY = gql`
   query piggies {
@@ -70,6 +75,29 @@ function groomStrike(price) {
   return "$" + price.slice(0,price.length-2) + "." + price.slice(-2)
 }
 
+function groomBlocks(blocks, latestBlock) {
+  let zero = new BigNumber('0')
+  let expiry = new BigNumber(blocks)
+  let currentBlock = new BigNumber(latestBlock)
+
+  let blockDelta = expiry.minus(currentBlock)
+  if (blockDelta.isNegative()) {
+    return "expired"
+  } else if (blockDelta.gte(blockDays)) {
+      let days = blockDelta.idiv(blockDays)
+      let hours = days.times(blockDays).minus(blockDelta).abs().idiv(blockHours)
+      return days.toString() + `d:` + hours.toString() + `hrs`
+  } else if (blockDelta.lt(blockDays) && blockDelta.gte(blockHours)) {
+      let hours = (blockDays).minus(blockDelta).idiv(blockHours)
+      return `0d:` + hours.toString() + `hrs`
+  } else if (blockDelta.gt(zero) && blockDelta.lt(blockHours)) {
+      return `<1hr`
+  } else if (blockDelta.isZero()) {
+      return `expiring now`
+  }
+   return 'no data'
+}
+
 class TokenData extends Component {
   constructor(props) {
     super(props)
@@ -100,7 +128,7 @@ class TokenData extends Component {
                         collateral: groomValues(item.collateral),
                         lotSize: item.lotSize,
                         strike: groomStrike(item.strike),
-                        expiryBlock: item.expiryBlock,
+                        expiryBlock: groomBlocks(item.expiryBlock, this.props.currentBlock),
                         isEuro: groomStyle(item.isEuro),
                         isPut: groomDirection(item.isPut),
                         rfp: item.RFP,
@@ -111,7 +139,7 @@ class TokenData extends Component {
                         auctionLength: auction[0].auctionLength,
                         timeStep: auction[0].timeStep,
                         priceStep: auction[0].priceStep,
-                        auctionExpiry: (parseInt(auction[0].startBlock) + parseInt(auction[0].auctionLength)).toString(),
+                        auctionExpiry: groomBlocks((parseInt(auction[0].startBlock) + parseInt(auction[0].auctionLength)).toString(), this.props.currentBlock),
                         auctionPrice: groomValues(this.getPrice(parseInt(auction[0].startBlock),
                           (parseInt(auction[0].startBlock) + parseInt(auction[0].auctionLength)),
                           parseInt(auction[0].startPrice),
@@ -129,7 +157,7 @@ class TokenData extends Component {
                       collateral: groomValues(item.collateral),
                       lotSize: item.lotSize,
                       strike: groomStrike(item.strike),
-                      expiryBlock: item.expiryBlock,
+                      expiryBlock: groomBlocks(item.expiryBlock, this.props.currentBlock),
                       isEuro: groomStyle(item.isEuro),
                       isPut: groomDirection(item.isPut),
                       rfp: item.RFP

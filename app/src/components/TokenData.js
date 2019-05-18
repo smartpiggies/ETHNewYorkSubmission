@@ -22,7 +22,6 @@ const client = new ApolloClient({
 })
 
 let tokenMap = []
-let tableRender
 
 const blockDays = parseInt(5760)
 const blockHours = parseInt(240) // 4 blocks per minute * 60 minutes per hour
@@ -75,6 +74,19 @@ function groomStrike(price) {
   return "$" + price.slice(0,price.length-2) + "." + price.slice(-2)
 }
 
+function getPrice(startBlock, auctionLength, startPrice, priceStep, timeStep, reservePrice, latestBlock) {
+  let currentBlock = parseInt(latestBlock)
+  let startBlockInt = parseInt(startBlock)
+  let auctionDuration = startBlockInt + parseInt(auctionLength)
+  if (currentBlock < auctionDuration) {
+
+    return ((currentBlock - startBlockInt)  * parseInt(priceStep) / parseInt(timeStep)).toString()
+
+  } else {
+    return reservePrice
+  }
+}
+
 function groomBlocks(blocks, latestBlock) {
   let zero = new BigNumber('0')
   let expiry = new BigNumber(blocks)
@@ -102,18 +114,27 @@ class TokenData extends Component {
   constructor(props) {
     super(props)
 
-    this.getPrice = this.getPrice.bind(this)
-
     this.state = {
       tokenMapLength: 0,
     };
   }
 
   componentDidMount() {
-      tableRender = <Query
+
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.currentBlock !== prevProps.currentBlock) {
+
+    }
+  }
+
+  render() {
+    return (
+      <ApolloProvider client={client} >
+      <Query
             query={PIGGY_QUERY}
-            variables={{
-            }}
+            pollInterval={7000}
           >
             {({ data, error, loading }) => {
               if (data['createPiggies'] !== undefined && data['createPiggies'].length > 0) {
@@ -140,12 +161,15 @@ class TokenData extends Component {
                         timeStep: auction[0].timeStep,
                         priceStep: auction[0].priceStep,
                         auctionExpiry: groomBlocks((parseInt(auction[0].startBlock) + parseInt(auction[0].auctionLength)).toString(), this.props.currentBlock),
-                        auctionPrice: groomValues(this.getPrice(parseInt(auction[0].startBlock),
-                          (parseInt(auction[0].startBlock) + parseInt(auction[0].auctionLength)),
-                          parseInt(auction[0].startPrice),
-                          parseInt(auction[0].priceStep),
-                          parseInt(auction[0].timeStep),
-                          parseInt(auction[0].reservePrice)).toString())
+                        auctionPrice: groomValues(getPrice(auction[0].startBlock,
+                            auction[0].auctionLength,
+                            auction[0].startPrice,
+                            auction[0].priceStep,
+                            auction[0].timeStep,
+                            auction[0].reservePrice,
+                            this.props.currentBlock
+                          )
+                        )
                       }
                     )
                   }
@@ -172,98 +196,11 @@ class TokenData extends Component {
                 "Something went wrong"
               ) : (
                 // write tokenMap to redux
+                console.log("query fired"),
                 <SetTable queryData={tokenMap} />
               )
             }}
           </Query>
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (this.props.currentBlock !== prevProps.currentBlock) {
-
-      tableRender = <Query
-        query={PIGGY_QUERY}
-        variables={{ }}
-      >
-        {({ data, error, loading }) => {
-          if (data['createPiggies'] !== undefined && data['createPiggies'].length > 0) {
-            tokenMap = data.createPiggies.map((item, i) => {
-              let auction = data.startAuctions.filter(auction => {return (auction.tokenId === item.tokenId)})
-              if (auction.length > 0) {
-                return (
-                  {
-                    id: item.id,
-                    from: item.from,
-                    tokenId: item.tokenId,
-                    collateral: groomValues(item.collateral),
-                    lotSize: item.lotSize,
-                    strike: groomStrike(item.strike),
-                    expiryBlock: item.expiryBlock,
-                    isEuro: groomStyle(item.isEuro),
-                    isPut: groomDirection(item.isPut),
-                    rfp: item.RFP,
-                    auctionFrom: auction[0].from,
-                    startBlock: auction[0].startBlock,
-                    startPrice: auction[0].startPrice,
-                    reservePrice: auction[0].reservePrice,
-                    auctionLength: auction[0].auctionLength,
-                    timeStep: auction[0].timeStep,
-                    priceStep: auction[0].priceStep,
-                    auctionExpiry: (parseInt(auction[0].startBlock) + parseInt(auction[0].auctionLength)).toString(),
-                    auctionPrice: groomValues(this.getPrice(parseInt(auction[0].startBlock),
-                      (parseInt(auction[0].startBlock) + parseInt(auction[0].auctionLength)),
-                      parseInt(auction[0].startPrice),
-                      parseInt(auction[0].priceStep),
-                      parseInt(auction[0].timeStep),
-                      parseInt(auction[0].reservePrice)).toString())
-                  }
-                )
-              }
-              return (
-                {
-                  id: item.id,
-                  from: item.from,
-                  tokenId: item.tokenId,
-                  collateral: item.collateral,
-                  multiplier: item.lotSize,
-                  strike: item.strike,
-                  expiry: item.expiryBlock,
-                  isEuro: item.isEuro,
-                  isPut: item.isPut,
-                  rfp: item.RFP
-                }
-              )
-            })
-          }
-
-          return loading ? (
-            "Loading"
-          ) : error ? (
-            "Something went wrong"
-          ) : (
-            // write tokenMap to redux
-            <SetTable queryData={tokenMap} />
-          )
-        }}
-      </Query>
-    }
-  }
-
-  getPrice(startBlock, auctionLength, startPrice, priceStep, timeStep, reservePrice) {
-    let currentBlock = this.props.currentBlock
-    if (currentBlock < (startBlock + auctionLength)) {
-
-      return (currentBlock - startBlock)  * priceStep / timeStep
-
-    } else {
-      return reservePrice
-    }
-  }
-
-  render() {
-    return (
-      <ApolloProvider client={client} >
-        {tableRender}
       </ApolloProvider>
     )
   }

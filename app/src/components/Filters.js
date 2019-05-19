@@ -42,6 +42,12 @@ class Filters extends React.Component {
   render() {
 
     const { filters } = this.props.actions
+    const defaultValues = {
+      AuctionsRadio: 'AllAuctions',
+      DirectionsRadio: 'AllDirections',
+      ExpirationRadio: 'AllExpires',
+      StyleRadio: 'AllStyles',
+    }
 
     return (
       <Container fluid className="sidebar-content">
@@ -51,7 +57,7 @@ class Filters extends React.Component {
             <CardTitle tag="h5">Filters</CardTitle>
           </CardHeader> */}
           <CardBody>
-            <AvForm>
+            <AvForm model={defaultValues}>
 
 
               {/* Radios */}
@@ -81,6 +87,7 @@ class Filters extends React.Component {
                   customInput label="All Directions"
                   value="AllDirections"
                   onClick={() => filters.showAllPutCall()}
+                  checked
                 />
                 <AvRadio
                   customInput label="Puts Only"

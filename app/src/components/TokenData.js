@@ -28,10 +28,9 @@ const blockHours = parseInt(240) // 4 blocks per minute * 60 minutes per hour
 
 const PIGGY_QUERY = gql`
   query piggies {
-    createPiggies {
+    piggies {
       id
       from
-      tokenId
       collateral
       lotSize
       strike
@@ -39,11 +38,6 @@ const PIGGY_QUERY = gql`
       isEuro
       isPut
       RFP
-    }
-    startAuctions {
-      id
-      from
-      tokenId
       startBlock
       startPrice
       reservePrice
@@ -55,10 +49,12 @@ const PIGGY_QUERY = gql`
 `
 
 function groomValues(value) {
-  if (value.length < 19) {
-    return "$0." + value.slice(-18,-16)
+  if (value !== null) {
+    if (value.length < 19) {
+      return "$0." + value.slice(-18,-16)
+    }
+      return "$" + value.slice(0,value.length-18) + "." + value.slice(-18,-16)
   }
-    return "$" + value.slice(0,value.length-18) + "." + value.slice(-18,-16)
 }
 
 
@@ -137,6 +133,7 @@ class TokenData extends Component {
             pollInterval={7000}
           >
             {({ data, error, loading }) => {
+              /**
               if (data['createPiggies'] !== undefined && data['createPiggies'].length > 0) {
                 tokenMap = data.createPiggies.map((item, i) => {
                   let auction = data.startAuctions.filter(auction => {return (auction.tokenId === item.tokenId)})
@@ -189,7 +186,8 @@ class TokenData extends Component {
                   )
                 })
               }
-
+              **/
+              /**
               return loading ? (
                 "Loading"
               ) : error ? (
@@ -199,6 +197,50 @@ class TokenData extends Component {
                 <SetTable queryData={tokenMap} />
               )
             }}
+            **/
+            if (data.piggies !== undefined && data.piggies.length > 0) {
+              tokenMap = data.piggies.map((item, i) => {
+                  return (
+                    {
+                      id: item.id,
+                      from: item.from,
+                      collateral: groomValues(item.collateral),
+                      lotSize: item.lotSize,
+                      strike: groomStrike(item.strike),
+                      expiryBlock: groomBlocks(item.expiryBlock, this.props.currentBlock),
+                      isEuro: groomStyle(item.isEuro),
+                      isPut: groomDirection(item.isPut),
+                      rfp: item.RFP,
+                      startBlock: item.startBlock,
+                      startPrice: item.startPrice,
+                      reservePrice: item.reservePrice,
+                      auctionLength: item.auctionLength,
+                      timeStep: item.timeStep,
+                      priceStep: item.priceStep,
+                      auctionExpiry: groomBlocks((parseInt(item.startBlock) + parseInt(item.auctionLength)).toString(), this.props.currentBlock),
+                      auctionPrice: groomValues(getPrice(item.startBlock,
+                          item.auctionLength,
+                          item.startPrice,
+                          item.priceStep,
+                          item.timeStep,
+                          item.reservePrice,
+                          this.props.currentBlock
+                        )
+                      )
+                    }
+                    )
+                  }
+                )
+              }
+            return loading ? (
+              "Loading"
+            ) : error ? (
+              "Something went wrong"
+            ) : (
+              // write tokenMap to redux
+              <SetTable queryData={tokenMap} />
+            )
+          }}
           </Query>
       </ApolloProvider>
     )

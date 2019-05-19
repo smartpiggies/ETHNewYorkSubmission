@@ -231,6 +231,10 @@ function mapStateToProps(state) {
     onlyExpired: state.filters.isExpiredOnly,
     notExpired: state.filters.isNotExpired,
 
+    stylesAll: state.filters.isStylesAll,
+    stylesAmerican: state.filters.isStylesAmerican,
+    isStylesEuropean: state.filters.isStylesEuropean,
+
     currentBlock: state.chainUtils.currentBlock,
     tokenData: state.tokenMapping.tokenMap
   }

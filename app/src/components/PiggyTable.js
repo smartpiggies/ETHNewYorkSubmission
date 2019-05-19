@@ -118,39 +118,15 @@ class PiggyTable extends Component {
     let displayData = displayPiggies
     let showOnAuction = this.props.forSale || this.props.auctionAll
     let showNotOnAuction = !this.props.forSale || this.props.auctionAll
-    let showPuts = this.props.putOnly || this.props.directionAll
-    let showCalls = this.props.callOnly || this.props.directionAll
-    let showExpired = this.props.onlyExpired || this.props.isExpiryAll
-    let showNotExpired = this.props.notExpired || this.props.isExpiryAll
+    let showPuts = (this.props.putOnly || this.props.directionAll)
+    let showCalls = (this.props.callOnly || this.props.directionAll)
+    let showExpired = this.props.onlyExpired || this.props.expiryAll
+    let showNotExpired = this.props.notExpired || this.props.expiryAll
 
     // run displayPiggies through each filter and see what we wind up with
-    // displayData = displayData.filter(row => ((row.isOnAuction && showOnAuction) || (!row.isOnAuction && showNotOnAuction)) && ((row.isPut && showPuts) || (row.isCall && showCalls)) && ((row.isExpired && showExpired) || (!row.isExpired && showNotExpired)))
-    
-    // not sure how you do this sequentially in JS...
     displayData = displayData.filter(row => ((row.isOnAuction && showOnAuction) || (!row.isOnAuction && showNotOnAuction)))
-    displayData = displayData.filter(row => ((row.isPut && showPuts) || (row.isCall && showCalls)))
+    displayData = displayData.filter(row => ((row.isPut == 'put' && showPuts) || (row.isPut == 'call' && showCalls)))
     displayData = displayData.filter(row => ((row.isExpired && showExpired) || (!row.isExpired && showNotExpired)))
-
-    // // original filter method which doesn't work well
-    // let displayData
-    // if (this.props.putOnly) {
-    //   displayData = displayPiggies.filter(row => row.isPut === "put")
-    // }
-    // if (this.props.callOnly) {
-    //   displayData = displayPiggies.filter(row => row.isPut === "call")
-    // }
-    // if (this.props.directionAll) {
-    //   displayData = displayPiggies
-    // }
-    // if (this.props.onlyExpired) {
-    //   displayData = displayPiggies.filter(row => row.isExpired)
-    // }
-    // if (this.props.notExpired) {
-    //   displayData = displayPiggies.filter(row => !row.isExpired)
-    // }
-    // if (this.props.expiryAll) {
-    //   displayData = displayPiggies
-    // }
 
     return (
 

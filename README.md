@@ -34,7 +34,7 @@ Solution 2: We created a custom Chainlink Adapter for use with SmartPiggies to p
 
 Problem: Users need a convenient way to view and explore the SmartPiggies ecosystem.
 
-Solution: We built a dapp that uses The Graph's GraphQL interface to quickly a conveniently retrieve and filter SmartPiggy contracts.
+Solution: We built a dapp that uses The Graph's GraphQL interface to quickly and conveniently retrieve and filter SmartPiggy contracts.
 
 ### Wyre Widget: Facilitate Creation and Purchase of SmartPiggies
 
@@ -70,7 +70,5 @@ Solution: We use the Wyre Widget to allow users to acquire DAI directly via debi
 - ReactJS
 
 - NodeJS
-
-
 
 

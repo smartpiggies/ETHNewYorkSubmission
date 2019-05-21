@@ -114,16 +114,22 @@ class PiggyTable extends Component {
   render() {
     let displayPiggies = this.props.piggies
 
-    let displayData
-    if (this.props.putOnly) {
-      displayData = displayPiggies.filter(row => row.isPut === "put")
-    }
-    if (this.props.callOnly) {
-      displayData = displayPiggies.filter(row => row.isPut === "call")
-    }
-    if (this.props.directionAll) {
-      displayData = displayPiggies
-    }
+    // alternative filter method
+    let displayData = displayPiggies
+    let showOnAuction = this.props.forSale || this.props.auctionAll
+    let showNotOnAuction = !this.props.forSale || this.props.auctionAll
+    let showPuts = (this.props.putOnly || this.props.directionAll)
+    let showCalls = (this.props.callOnly || this.props.directionAll)
+    let showExpired = this.props.onlyExpired || this.props.expiryAll
+    let showNotExpired = this.props.notExpired || this.props.expiryAll
+    let showAmerican = this.props.stylesAmerican || this.props.stylesAll
+    let showEuropean = this.props.stylesEuropean || this.props.stylesAll
+
+    // run displayPiggies through each filter and see what we wind up with
+    displayData = displayData.filter(row => ((row.isOnAuction && showOnAuction) || (!row.isOnAuction && showNotOnAuction)))
+    displayData = displayData.filter(row => ((row.isPut === 'put' && showPuts) || (row.isPut === 'call' && showCalls)))
+    displayData = displayData.filter(row => ((row.isExpired && showExpired) || (!row.isExpired && showNotExpired)))
+    displayData = displayData.filter(row => ((row.isEuro === 'American' && showAmerican) || (row.isEuro === 'European' && showEuropean)))
 
     return (
 
@@ -202,6 +208,10 @@ function mapStateToProps(state) {
     expiryAll: state.filters.isExpiryAll,
     onlyExpired: state.filters.isExpiredOnly,
     notExpired: state.filters.isNotExpired,
+
+    stylesAll: state.filters.isStylesAll,
+    stylesAmerican: state.filters.isStylesAmerican,
+    stylesEuropean: state.filters.isStylesEuropean,
   }
 }
 
